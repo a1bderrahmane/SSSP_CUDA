@@ -2,7 +2,7 @@
 #define I_SOLVER_CUH
 
 #include <vector> 
-#include "graph.hpp"
+#include "GPU/graph.hpp"
 #include <cuda_runtime.h>
 
 
