@@ -3,5 +3,9 @@
         "string": "cpp",
         "iostream": "cpp",
         "fstream": "cpp"
-    }
+    },
+    "C_Cpp.codeAnalysis.clangTidy.checks.disabled": [
+        "clang-analyzer-*"
+    ]
 }
+
