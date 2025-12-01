@@ -15,9 +15,26 @@ public:
         return gridDim.x * blockDim.x;
     }
 
-    __device__ uint binary_search(uint*array,uint target)
+    __device__ uint binary_search(uint *arr, uint target, size_t size)
     {
-        
+        int low = 0;
+        int high = size;
+        int result = size;
+        while (low < high)
+        {
+            int mid = low + (high - low) / 2;
+
+            if (arr[mid] > target)
+            {
+                result = mid;
+                high = mid;
+            }
+            else
+            {
+                low = mid + 1;
+            }
+        }
+        return result;
     }
 
 private:

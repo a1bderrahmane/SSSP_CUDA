@@ -2,12 +2,11 @@
 #define CPU_SOLVER_CUH
 
 #include "Isolver.cuh" 
-#include "Graph.hpp" 
 
 
 class CPUsolver : public Isolver {
 public:
-    std::vector<int> solve(const Graph& graph, int source_node) override;
+    std::vector<int> solve(const std::string& filename, int source_node) override;
     ~CPUsolver() override = default;
 };
 

@@ -11,7 +11,6 @@
 #define maxWeight 50;
 #define minWeight 5 ;
 
-constexpr int INFINITY_WEIGHT = std::numeric_limits<int>::max();
 
 struct Edge
 {
@@ -19,10 +18,6 @@ struct Edge
     uint destination;
 };
 
-
-// Directed CSR
-// No vertex property
-// Edge Property
 class CSR
 {
 public:
@@ -37,7 +32,6 @@ public:
     std::unordered_map<int,std::vector<int>> adjacencies;
 
 private:
-    void readfile(const std::string &filename);
     uint generateRandomWeight();
     void makeAdjacencies(const std::string&filename);
     void makeRowPtr();
