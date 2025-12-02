@@ -8,8 +8,9 @@
 #include <random>
 #include <unordered_map>
 
-#define maxWeight 50;
-#define minWeight 5;
+static constexpr u_int8_t maxWeight = 100;
+static constexpr u_int8_t minWeight = 0;
+
 
 struct Edge
 {
@@ -31,12 +32,16 @@ public:
     uint *row_ptr;
     uint *col_idx;
     u_int8_t *weights;
+    uint* distances;
     std::unordered_map<int, std::vector<int>> adjacencies;
     int getNumberOfEdges();
     int getNumberofVertices();
     uint *getRowPtr();
     uint *getColIdx();
     u_int8_t *getWeights();
+    uint* getDistances();
+    int getAverageDegree();
+    int getAverageEdgeWeight();
 
 private:
     u_int8_t generateRandomWeight();

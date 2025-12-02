@@ -13,9 +13,7 @@ u_int8_t CSR::generateRandomWeight()
 {
     std::random_device dev;
     std::mt19937 rng(dev());
-    u_int8_t a = minWeight;
-    u_int8_t b = maxWeight;
-    std::uniform_int_distribution<std::mt19937::result_type> gen(a, b);
+    std::uniform_int_distribution<std::mt19937::result_type> gen(minWeight, maxWeight);
     return (u_int8_t)gen(rng);
 }
 
@@ -55,6 +53,7 @@ void CSR::allocateMemory()
     }
     col_idx=(uint*)malloc(sizeof(uint)*col_idx_size);
     weights=(u_int8_t *)malloc(sizeof(u_int8_t)*col_idx_size);
+    distances=(uint*)malloc(sizeof(uint)*num_vertices);
 
 }
 void CSR::makeRowPtr()
@@ -109,12 +108,31 @@ uint*CSR::getRowPtr()
     return row_ptr;
 }
 
+uint*CSR::getDistances()
+{
+    return distances;
+}
+
+int CSR::getAverageDegree()
+{
+    
+    int degreeCumulativeSum=row_ptr[num_edges];
+    return degreeCumulativeSum/num_edges;
+}
+
+// We generate the weights randomly following a uniform distribution
+// So instead of getting the exact average we will just consider the 
+int CSR::getAverageEdgeWeight()
+{
+    return (maxWeight - minWeight) / 2;
+}
 
 CSR::~CSR()
 {
     free(row_ptr);
     free(weights);
     free(col_idx);
+    free(distances);
 }
 // int main()
 // {

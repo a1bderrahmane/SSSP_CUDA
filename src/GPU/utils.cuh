@@ -2,11 +2,16 @@
 #define UTILS_CUH
 #include "CSR.hpp"
 #include "GPUsolver.cuh"
+#include <cub/cub.cuh>
+
 typedef std::pair<uint, uint> CSREdge;
 typedef std::pair<CSREdge, CSREdge> CSREdgesRange;
-class utils
+namespace utils
 {
-public:
+    int inline computeDelta(int averageDegree, int averageEdgeWeight)
+    {
+        return (WARP_SIZE * averageEdgeWeight) / averageDegree;
+    }
     __device__ __forceinline__ int get_global_id()
     {
         return blockIdx.x * blockDim.x + threadIdx.x;
@@ -63,8 +68,10 @@ public:
         int destination = csr_graph->getColIdx()[edgeIdx];
         CSREdge edge = {source, destination};
     }
-
-    __device__ void getBlockEdgesRange(CSR *csr_graph,__shared__ CSREdgesRange*range_csr)
+    __device__ void deduplicateArray(uint *arr, int arrLength)
+    {
+    }
+    __device__ void getBlockEdgesRange(CSR *csr_graph, __shared__ CSREdgesRange *range_csr)
     {
         int num_edges = csr_graph->getNumberOfEdges();
         CSREdge block_start_edge_csr;
@@ -84,7 +91,7 @@ public:
         __syncthreads();
         *range_csr = {block_start_edge_csr, block_end_edge_csr};
     }
-    __device__ CSREdgesRange getMyEdgesRange(CSR *csr_graph,__shared__ CSREdgesRange*range_csr)
+    __device__ CSREdgesRange getMyEdgesRange(CSR *csr_graph, __shared__ CSREdgesRange *range_csr)
     {
         int t = threadIdx.x;
         int block_start_edge = floor((blockIdx.x * csr_graph->getNumberOfEdges()) / GRID_SIZE);
@@ -92,14 +99,10 @@ public:
         int R = block_end_edge - block_start_edge;
         int thread_edge_start = block_start_edge + floor(t * R / BLOCK_size);
         int thread_edge_end = block_start_edge + floor((t + 1) * R / BLOCK_size);
-
-
-        CSREdge thread_edge_start_csr =findCSREdge(csr_graph, thread_edge_start, block_start_edge, block_end_edge+1 + 1);
-        CSREdge thread_edge_end_csr =findCSREdge(csr_graph, thread_edge_end, thread_edge_start_csr.first, block_end_edge+1 + 1);
-
-        return {thread_edge_start_csr,thread_edge_end_csr};
+        CSREdge thread_edge_start_csr = findCSREdge(csr_graph, thread_edge_start, block_start_edge, block_end_edge + 1 + 1);
+        CSREdge thread_edge_end_csr = findCSREdge(csr_graph, thread_edge_end, thread_edge_start_csr.first, block_end_edge + 1 + 1);
+        return {thread_edge_start_csr, thread_edge_end_csr};
     }
 
-private:
 };
 #endif
