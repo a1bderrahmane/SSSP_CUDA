@@ -8,7 +8,13 @@ CSR::CSR(const std::string &filename)
     makeRowPtr();
     makeColIdx();
 }
-
+void CSR::initDistances()
+{
+    for(int i=0;i<getNumberofVertices();i++)
+    {
+        distances[i]=UINT32_MAX;
+    }
+}
 u_int8_t CSR::generateRandomWeight()
 {
     std::random_device dev;

@@ -12,11 +12,6 @@ static constexpr u_int8_t maxWeight = 100;
 static constexpr u_int8_t minWeight = 0;
 
 
-struct Edge
-{
-    uint source;
-    uint destination;
-};
 // We represent the graph as a Compact Sparse Row data structure
 // It consists of three arrays intending to make the sparse graph be reprensented using less memory
 // This is gonna help a lot with the data transfer from host to device and vice versa
@@ -42,10 +37,12 @@ public:
     uint* getDistances();
     int getAverageDegree();
     int getAverageEdgeWeight();
+    
 
 private:
     u_int8_t generateRandomWeight();
     void allocateMemory();
+    void initDistances();
     void makeAdjacencies(const std::string &filename);
     void makeRowPtr();
     void makeColIdx();

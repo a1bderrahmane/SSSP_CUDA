@@ -17,7 +17,8 @@ public:
     ~GPUsolver() override;
 
 protected:
-    __device__ void traverseGraph(int source_node, __shared__ uint8_t *local_near_pile);
+    __global__ void workFrontSweep(uint*workFront,uint*workFront_ouotput);
+     void workFrontSweepSolver(int source_node,thrust::device_vector<float>& d_distance);
     __global__ void solver_kernel(int source_node);
 
 private:
@@ -30,11 +31,7 @@ private:
     uint *distances;
     uint *distances_device;
     uint8_t *weights_device;
-    uint *nearPile;
-    uint *farPile;
-    int *delta;
-    int *nearPileSize;
-    int *farPileSize;
+    int *nbVertices;
     void allocate_device_memory();
     void transfer_data_from_host_to_device();
     void transfer_data_from_device_to_host();
