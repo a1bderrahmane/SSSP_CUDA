@@ -9,7 +9,7 @@
 #include "CSR.hpp"
 #include "ConcurrentQueue.cpp"
 
-#define NB_THREADS 1
+#define NB_THREADS 8
 
 class CPUSolver
 {
