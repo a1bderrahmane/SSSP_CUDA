@@ -6,12 +6,12 @@
 #include <thrust/unique.h>
 #include <thrust/copy.h>
 #include <thrust/execution_policy.h>
-static constexpr uint8_t WARP_SIZE = 32;
 
 namespace utils
 {
     int inline computeDelta(int averageDegree, int averageEdgeWeight)
     {
+        int WARP_SIZE=32;
         return (WARP_SIZE * averageEdgeWeight) / averageDegree;
     }
     __device__ __forceinline__ int get_global_id()
@@ -23,7 +23,10 @@ namespace utils
     {
         return gridDim.x * blockDim.x;
     }
-    void deduplicate(thrust::device_vector<uint> &arr)
+    struct IsNonZero {
+            __host__ __device__ bool operator()(int x) const { return x != 0; }
+        };
+    inline void deduplicate(thrust::device_vector<uint> &arr)
     {
         if (arr.empty())
         {
@@ -34,13 +37,14 @@ namespace utils
         arr.erase(new_end, arr.end());
     }
     
-    thrust::device_vector<int> compact(thrust::device_vector<uint> &arr)
+    inline thrust::device_vector<int> compact(thrust::device_vector<uint> &arr)
     {
         if (arr.empty())
         {
             return thrust::device_vector<int>();
         }
         thrust::device_vector<int> d_output(arr.size());
+       
         auto d_indices_begin = thrust::make_counting_iterator(0);
         auto new_end = thrust::copy_if(
             thrust::cuda::par,
@@ -53,8 +57,5 @@ namespace utils
         d_output.resize(std::distance(d_output.begin(), new_end));
         return d_output;
     }
-    struct IsNonZero {
-        __host__ __device__ bool operator()(int x) const { return x != 0; }
-    };
 };
 #endif
