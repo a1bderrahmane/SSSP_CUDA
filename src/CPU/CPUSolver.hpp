@@ -3,17 +3,21 @@
 
 #include <atomic>
 #include <mutex>
+#include <thread>
 
-#include "Isolver.hpp"
+#include "Isolver.cuh"
 #include "CSRGraph.hpp"
 #include "ConcurrentQueue.cpp"
 
-class CPUSolver : public Isolver
+#define NB_THREADS 1
+
+class CPUSolver
 {
 public:
-    std::vector<int> solve(const std::string &filename, uint source_node) override;
+    void solve(uint source_node);
+    void printResults();
     CPUSolver(const std::string &filename);
-    ~CPUSolver() override;
+    ~CPUSolver();
 
 private:
     CSRGraph *csr_graph;
@@ -25,13 +29,14 @@ private:
     uint *predecessors;
     std::mutex outputWriterMutex;
 
-    ConcurrentQueue<uint> *currentQueue;
-    ConcurrentQueue<uint> *nextQueue;
+    ConcurrentQueue *vertexQueue;
     bool* verticesUpdated;
+    std::thread* threadPool[NB_THREADS];
 
-    void solveIteration(uint source_node);
-    void solveIterationThreadWork(uint source_node);
+    void visitVertices(uint source_node);
+    void visitVerticesThreadWork(uint source_node);
     void updateOutputThreadWork(uint vertex, uint neighboor, uint newDistance);
+    void refillVertexQueue(uint source_node);
 };
 
 #endif // CPU_SOLVER_CPP

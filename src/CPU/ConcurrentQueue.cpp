@@ -4,26 +4,28 @@
 #include <mutex>
 #include <condition_variable>
 
-template <typename T>
+#define UINT_INFINITY 4294967295
+
+/** A concurrent queue that can contain uint values. */
 class ConcurrentQueue {
 public:
 
     /** Atomically adds given value to the queue. */
-    void enqueue(T value) {
+    void enqueue(uint value) {
         std::lock_guard<std::mutex> lock(mutex_);
         queue_.push(value);
         cond_var_.notify_one();
     }
 
     /** Atomically removes and returns the first element of the queue.
-     * If the queue is empty, returns NULL.
+     * If the queue is empty, returns UINT_INFINITY (2^32 - 1).
      */
-    T dequeue() {
+    uint dequeue() {
         std::unique_lock<std::mutex> lock(mutex_);
-        if (queue_.empty) {
-            return NULL;
+        if (queue_.empty()) {
+            return UINT_INFINITY;
         }
-        T value = queue_.front();
+        uint value = queue_.front();
         queue_.pop();
         return value;
     }
@@ -34,7 +36,7 @@ public:
     }
 
 private:
-    std::queue<T> queue_;
+    std::queue<uint> queue_;
     std::mutex mutex_;
     std::condition_variable cond_var_;
 };

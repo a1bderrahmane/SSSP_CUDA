@@ -58,12 +58,22 @@ void CSRGraph::makeRowPtr() {
 }
 
 void CSRGraph::makeColIdx() {
+    uint testWeights[] = {
+        0, 2, 8, 1, 0, 0, 0,
+        0, 0, 0, 3, 4, 0, 0,
+        0, 0, 0, 0, 0, 7, 0,
+        0, 0, 3, 0, 0, 12, 8,
+        0, 0, 0, 3, 0, 0, 1,
+        0, 0, 0, 0, 0, 0, 1,
+        0, 0, 0, 0, 0, 5, 0
+    };
+
     int j=0;
     for (uint i = 0; i < num_vertices; i++) {
         if (adjacencies.find(i) != adjacencies.end()) {
             for (auto &v : adjacencies[i]) {
-                col_idx[j]=v;
-                weights[j]=(u_int8_t)generateRandomWeight();
+                col_idx[j] = v;
+                weights[j] = generateRandomWeight();
                 j++;
             }
         }
