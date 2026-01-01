@@ -9,7 +9,7 @@
 #include <thrust/device_vector.h>
 // #include <thrust/raw_pointer_cast.h>
 
-static constexpr uint8_t BLOCK_SIZE = 1024;
+static constexpr int BLOCK_SIZE = 1024;
 static constexpr uint8_t GRID_SIZE = 40;
 static constexpr uint8_t WARP_SIZE = 32;
 class GPUsolver : public Isolver

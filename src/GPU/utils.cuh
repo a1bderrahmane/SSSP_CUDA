@@ -6,6 +6,8 @@
 #include <thrust/unique.h>
 #include <thrust/copy.h>
 #include <thrust/execution_policy.h>
+static constexpr uint8_t WARP_SIZE = 32;
+
 namespace utils
 {
     int inline computeDelta(int averageDegree, int averageEdgeWeight)
@@ -31,13 +33,7 @@ namespace utils
         auto new_end = thrust::unique(arr.begin(), arr.end());
         arr.erase(new_end, arr.end());
     }
-    struct IsNonZero
-    {
-        __host__ __device__ bool operator()(int x) const
-        {
-            return x != 0;
-        }
-    };
+    
     thrust::device_vector<int> compact(thrust::device_vector<uint> &arr)
     {
         if (arr.empty())
