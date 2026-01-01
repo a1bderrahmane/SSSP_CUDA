@@ -6,7 +6,7 @@
 #include <thread>
 
 #include "Isolver.cuh"
-#include "CSRGraph.hpp"
+#include "CSR.hpp"
 #include "ConcurrentQueue.cpp"
 
 #define NB_THREADS 1
@@ -20,10 +20,10 @@ public:
     ~CPUSolver();
 
 private:
-    CSRGraph *csr_graph;
+    CSR *csr_graph;
     uint* row_ptr;
     uint* col_idx;
-    uint* weights;
+    uint8_t* weights;
 
     uint *distances;
     uint *predecessors;
@@ -35,7 +35,7 @@ private:
 
     void visitVertices(uint source_node);
     void visitVerticesThreadWork(uint source_node);
-    void updateOutputThreadWork(uint vertex, uint neighboor, uint newDistance);
+    void updateOutputThreadWork(uint vertex, uint neighboor, uint8_t edgeWeight);
     void refillVertexQueue(uint source_node);
 };
 

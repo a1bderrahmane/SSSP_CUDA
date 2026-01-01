@@ -1,7 +1,7 @@
 #include "CPUSolver.hpp"
 
 CPUSolver::CPUSolver(const std::string &filename) {
-    csr_graph = new CSRGraph(filename);
+    csr_graph = new CSR(filename);
     row_ptr = csr_graph->getRowPtr();
     col_idx = csr_graph->getColIdx();
     weights = csr_graph->getWeights();
@@ -17,11 +17,11 @@ CPUSolver::CPUSolver(const std::string &filename) {
 }
 
 void CPUSolver::solve(uint source_node) {
+    distances[source_node] = 0;
     vertexQueue = new ConcurrentQueue();
     vertexQueue->enqueue(source_node);
 
     while (!vertexQueue->isEmpty()) {
-        printf("[solve] new round of visiting vertices\n");
         visitVertices(source_node);
         refillVertexQueue(source_node);
     }
@@ -53,7 +53,7 @@ void CPUSolver::visitVerticesThreadWork(uint source_node) {
         // Iterate on every edges of our vertex
         for (int i = row_ptr[vertex]; i < row_ptr[vertex + 1]; i++) {
             uint neighboor = col_idx[i];
-            uint edgeWeight = weights[i];
+            uint8_t edgeWeight = weights[i];
             
             // Take the lock only if it seems that we need to update output
             if (distances[neighboor] > distances[vertex] + edgeWeight) {
@@ -63,7 +63,7 @@ void CPUSolver::visitVerticesThreadWork(uint source_node) {
     }
 }
 
-void CPUSolver::updateOutputThreadWork(uint vertex, uint neighboor, uint edgeWeight) {
+void CPUSolver::updateOutputThreadWork(uint vertex, uint neighboor, uint8_t edgeWeight) {
     std::lock_guard<std::mutex> lock(outputWriterMutex);
 
     // Ensure with the lock that we need to update output
@@ -87,8 +87,9 @@ void CPUSolver::refillVertexQueue(uint source_node) {
 
 void CPUSolver::printResults() {
     printf("### CPU Solver : Results ###\n");
-    for (uint vertex = 0; vertex < csr_graph->getNumberOfEdges(); vertex++) {
+    for (uint vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         printf("- distance to vertex %u : %u\n", vertex, distances[vertex]);
+        printf("  predecessor of %u : %u\n", vertex, predecessors[vertex]);
     }
 }
 
