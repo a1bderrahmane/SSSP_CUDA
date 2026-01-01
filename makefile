@@ -1,17 +1,15 @@
 # ==========================================
 # CUDA SSSP Project Makefile
 # ==========================================
-
 NVCC        := nvcc
 CXX         := g++
+
 ARCH        := -arch=sm_75
 
-# Flags
-COMMON_FLAGS := -O3 -std=c++14
+COMMON_FLAGS := -O3 
 NVCC_FLAGS   := $(ARCH) $(COMMON_FLAGS) --compiler-options "-Wall -Wextra"
 LDFLAGS      := $(ARCH)
 
-# Include paths 
 INCLUDES    := -I./src -I./src/CPU -I./src/GPU -I./src/Hybrid
 
 SRC_DIR     := src
@@ -23,8 +21,8 @@ TARGET      := $(BIN_DIR)/sssp_solver
 ALL_CPP     := $(shell find $(SRC_DIR) -name "*.cpp")
 ALL_CU      := $(shell find $(SRC_DIR) -name "*.cu")
 
+EXCLUDE_CU  := $(SRC_DIR)/GPU/main.cu
 
-EXCLUDE_CU  := $(SRC_DIR)/main.cpp
 SRCS_CU     := $(filter-out $(EXCLUDE_CU), $(ALL_CU))
 SRCS_CPP    := $(ALL_CPP)
 
@@ -41,7 +39,7 @@ $(TARGET): $(OBJS) | $(BIN_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	@echo "Compiling C++: $<"
-	$(NVCC) $(INCLUDES) $(COMMON_FLAGS) -x c++ -dc $< -o $@
+	$(CXX) $(INCLUDES) $(COMMON_FLAGS) -std=c++14 -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
 	@mkdir -p $(@D)
@@ -51,19 +49,13 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
 $(BIN_DIR):
 	mkdir -p $(BIN_DIR)
 
-
 clean:
 	@echo "Cleaning up..."
 	rm -rf $(OBJ_DIR)
 	rm -f $(TARGET)
 
-rebuild: clean all
-
 info:
-	@echo "Sources found:"
-	@echo "  CPP: $(SRCS_CPP)"
-	@echo "  CU:  $(SRCS_CU)"
-	@echo "Objects:"
-	@echo "  $(OBJS)"
+	@echo "CUDA Sources: $(SRCS_CU)"
+	@echo "C++ Sources:  $(SRCS_CPP)"
 
-.PHONY: all clean rebuild info
+.PHONY: all clean info
