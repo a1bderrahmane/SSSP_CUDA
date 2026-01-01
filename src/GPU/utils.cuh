@@ -1,14 +1,11 @@
 #ifndef UTILS_CUH
 #define UTILS_CUH
 #include "CSR.hpp"
-#include "GPUsolver.cuh"
 #include <thrust/device_vector.h>
 #include <thrust/sort.h>
 #include <thrust/unique.h>
 #include <thrust/copy.h>
-
-typedef std::pair<uint, uint> CSREdge;
-typedef std::pair<CSREdge, CSREdge> CSREdgesRange;
+#include <thrust/execution_policy.h>
 namespace utils
 {
     int inline computeDelta(int averageDegree, int averageEdgeWeight)
@@ -60,6 +57,8 @@ namespace utils
         d_output.resize(std::distance(d_output.begin(), new_end));
         return d_output;
     }
-
+    struct IsNonZero {
+        __host__ __device__ bool operator()(int x) const { return x != 0; }
+    };
 };
 #endif

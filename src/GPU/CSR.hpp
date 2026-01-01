@@ -7,9 +7,10 @@
 #include <string>
 #include <random>
 #include <unordered_map>
+#include <cstdint>
 
 static constexpr u_int8_t maxWeight = 100;
-static constexpr u_int8_t minWeight = 0;
+static constexpr u_int8_t minWeight = 1;
 
 
 // We represent the graph as a Compact Sparse Row data structure

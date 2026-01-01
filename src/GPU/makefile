@@ -11,7 +11,7 @@ TARGET = main_cuda
 # Define the source files
 CU_SOURCES = main.cu GPUsolver.cu
 CPP_SOURCES = CSR.cpp
-HEADER_FILES = CSR.hpp GPUsolver.cuh utils.cuh
+HEADER_FILES = CSR.hpp GPUsolver.cuh utils.cuh ../Isolver.cuh
 
 # Define object files
 CU_OBJECTS = $(CU_SOURCES:.cu=.o)
