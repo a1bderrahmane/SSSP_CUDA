@@ -7,7 +7,7 @@
 #include "utils.cuh"
 #include <thrust/fill.h>
 #include <thrust/device_vector.h>
-#include <thrust/raw_pointer_cast.h>
+// #include <thrust/raw_pointer_cast.h>
 
 static constexpr uint8_t BLOCK_SIZE = 1024;
 static constexpr uint8_t GRID_SIZE = 40;
