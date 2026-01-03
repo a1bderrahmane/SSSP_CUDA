@@ -1,5 +1,5 @@
-#ifndef GPU_SOLVER_CUH
-#define GPU_SOLVER_CUH
+// #ifndef GPU_SOLVER_CUH
+// #define GPU_SOLVER_CUH
 
 #include "Isolver.cuh"
 #include "CSR.hpp"
@@ -38,4 +38,4 @@ CSR *csr_graph;
     
 };
 
-#endif // GPU_SOLVER_CUH
+// #endif // GPU_SOLVER_CUH

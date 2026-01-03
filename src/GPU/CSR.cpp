@@ -140,8 +140,3 @@ CSR::~CSR()
     free(col_idx);
     free(distances);
 }
-// int main()
-// {
-//     std::string file = "/home/a1bderrahmane/SSSP_CUDA/datasets/simple-graph.txt";
-//     return 0;
-// }

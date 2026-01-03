@@ -6,7 +6,7 @@ CXX         := g++
 
 ARCH        := -arch=sm_75
 
-COMMON_FLAGS := -O3 
+COMMON_FLAGS := -O3
 NVCC_FLAGS   := $(ARCH) $(COMMON_FLAGS) --compiler-options "-Wall -Wextra"
 LDFLAGS      := $(ARCH)
 

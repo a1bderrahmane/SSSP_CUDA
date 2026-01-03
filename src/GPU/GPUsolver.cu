@@ -3,11 +3,11 @@
 
 __global__ void k_workFrontSweep(
     int num_vertices,
-    const uint *row_ptr, 
-    const uint *col_idx, 
-    const uint8_t *weights, 
-    uint *distances, 
-    const uint *workFront_in, 
+    const uint *row_ptr,
+    const uint *col_idx,
+    const uint8_t *weights,
+    uint *distances,
+    const uint *workFront_in,
     uint *workFront_out)
 {
     int tid = utils::get_global_id();
@@ -88,12 +88,12 @@ void GPUsolver::workFrontSweepSolver(int source_node)
         int numBlocks = (nbVertices + BLOCK_SIZE - 1) / BLOCK_SIZE;
         if (numBlocks > 1024) numBlocks = 1024; 
         k_workFrontSweep<<<numBlocks, BLOCK_SIZE>>>(
-            nbVertices, 
-            d_row_ptr, 
-            d_col_idx, 
-            d_weights, 
-            ptr_dist, 
-            ptr_wf_in, 
+            nbVertices,
+            d_row_ptr,
+            d_col_idx,
+            d_weights,
+            ptr_dist,
+            ptr_wf_in,
             ptr_wf_out
         );
         cudaDeviceSynchronize();
