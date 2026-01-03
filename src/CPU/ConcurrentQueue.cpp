@@ -3,6 +3,7 @@
 #include <queue>
 #include <mutex>
 #include <condition_variable>
+#include "CSR.hpp"
 
 #define UINT_INFINITY 4294967295
 

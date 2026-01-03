@@ -9,6 +9,10 @@
 #include <unordered_map>
 #include <cstdint>
 
+#if defined(__linux__)
+typedef uint32_t uint;
+#endif
+
 static constexpr u_int8_t maxWeight = 100;
 static constexpr u_int8_t minWeight = 1;
 

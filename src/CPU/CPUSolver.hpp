@@ -11,6 +11,7 @@
 
 #define NB_THREADS 8
 
+
 class CPUSolver
 {
 public:
