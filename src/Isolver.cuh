@@ -5,7 +5,7 @@
 #include <string>
 class Isolver {
 public:
-    virtual std::vector<int> solve(const std::string& filename, uint source_node) = 0;
+    virtual std::vector<int> solve(uint source_node) = 0;
     virtual ~Isolver() = default;
 };
 
