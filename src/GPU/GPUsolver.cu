@@ -105,7 +105,7 @@ void GPUsolver::workFrontSweepSolver(int source_node)
     std::cout << "Converged in " << iter << " iterations." << std::endl;
 }
 
-std::vector<int> GPUsolver:: solve(uint source_node)
+std::vector<uint> GPUsolver::solve(uint source_node)
 {
     workFrontSweepSolver(source_node);
     return {};
