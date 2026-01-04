@@ -15,7 +15,7 @@ static constexpr uint8_t WARP_SIZE = 32;
 class GPUsolver : public Isolver
 {
 public:
-    std::vector<int> solve(const std::string &filename, int source_node) override;
+    std::vector<int> solve(const std::string &filename, uint source_node) override;
     GPUsolver(const std::string &filename);
     ~GPUsolver() override;
     std::vector<uint> getDistancesHost();
