@@ -219,7 +219,6 @@ void HybridSolver::refillDeviceVertexQueue() {
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
     int numBlocks = (nbVertices + HYBRID_TPB - 1) / HYBRID_TPB;
         // if (numBlocks > 1024) numBlocks = 1024;
-        printf("");
         deviceKernel<<<numBlocks, HYBRID_TPB>>>(
             deviceVertexQueue,
             verticesUpdated,
