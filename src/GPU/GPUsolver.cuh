@@ -3,7 +3,6 @@
 
 #include "Isolver.hpp"
 #include "CSR.hpp"
-#include "cuda_runtime.h"
 #include <thrust/fill.h>
 #include <thrust/device_vector.h>
 
