@@ -53,6 +53,7 @@ void HybridSolver::initializeData() {
 }
 
 std::vector<uint> HybridSolver::solve(uint source_node) {
+    printf("[Hybrid] Starting to solve with source node %u...\n", source_node);
     distances[source_node] = 0;
 
     // Mark source_node as updated so that it is added to the first vertexQueue
