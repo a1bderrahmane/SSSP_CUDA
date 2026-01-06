@@ -2,6 +2,7 @@
 #define CPU_SOLVER_CUH
 
 #include <atomic>
+#include <iostream>
 #include <mutex>
 #include <thread>
 
@@ -15,8 +16,8 @@
 class CPUSolver : Isolver
 {
 public:
-    std::vector<uint> solve(uint source_node);
-    void printResults();
+    void solve(uint source_node);
+    void printResults(std::ostream &out = std::cout);
     CPUSolver(const std::string &filename);
     ~CPUSolver();
 
