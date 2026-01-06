@@ -1,13 +1,12 @@
-// #ifndef GPU_SOLVER_CUH
-// #define GPU_SOLVER_CUH
+#ifndef GPU_SOLVER_CUH
+#define GPU_SOLVER_CUH
 
-#include "Isolver.cuh"
+#include "Isolver.hpp"
 #include "CSR.hpp"
 #include "cuda_runtime.h"
 #include "utils.cuh"
 #include <thrust/fill.h>
 #include <thrust/device_vector.h>
-// #include <thrust/raw_pointer_cast.h>
 
 static constexpr int BLOCK_SIZE = 1024;
 static constexpr uint8_t GRID_SIZE = 40;
@@ -21,7 +20,6 @@ public:
     std::vector<uint> getDistancesHost();
 
 protected:
-    // __global__ void workFrontSweep(uint*workFront,uint*workFront_output);
      void workFrontSweepSolver(int source_node);
 
 private:
@@ -38,4 +36,4 @@ CSR *csr_graph;
     
 };
 
-// #endif // GPU_SOLVER_CUH
+#endif // GPU_SOLVER_CUH

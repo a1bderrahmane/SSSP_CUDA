@@ -1,7 +1,7 @@
 #ifndef HYBRID_SOLVER_CUH
 #define HYBRID_SOLVER_CUH
 
-#include "Isolver.cuh"
+#include "Isolver.hpp"
 #include "CSR.hpp"
 #include "cuda_runtime.h"
 #include "utils.cuh"
