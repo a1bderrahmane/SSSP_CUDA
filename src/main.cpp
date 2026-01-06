@@ -22,7 +22,7 @@ int main(int argc, char **argv) {
         {"help", no_argument, nullptr, 'h'}};
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "i:h", long_opts, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:h:v", long_opts, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             filename = optarg;
