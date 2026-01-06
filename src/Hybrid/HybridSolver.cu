@@ -98,6 +98,7 @@ uint HybridSolver::countVerticesInQueue() {
             printf("  %d is in queue\n", vertex);
             nbVertices++;
         } else {
+            printf("  %d is not in queue\n", vertex);
         }
     }
     
@@ -187,8 +188,6 @@ __global__ void deviceKernel(
     int totalThreads = gridDim.x * blockDim.x;
 
     for (int i = tid; i < nbVerticesInGraph; i += totalThreads) {
-        // reset verticesUpdated data
-        verticesUpdated[i] = false;
         if (deviceVertexQueue[i]) {
             uint start_edge = row_ptr[i];
             uint end_edge = row_ptr[i + 1];
@@ -213,11 +212,12 @@ __global__ void deviceKernel(
 
 void HybridSolver::refillDeviceVertexQueue() {
     // set new divice vertex queue to old verticesUpdated
-    bool* tmp = deviceVertexQueue;
+    bool** tmp = &deviceVertexQueue;
     deviceVertexQueue = verticesUpdated;
-    verticesUpdated = tmp;
+    verticesUpdated = *tmp;
 
-    // verticesUpdated data is reset inside the deviceKernel
+    // reset verticesUpdated
+    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices());
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
