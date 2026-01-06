@@ -5,17 +5,17 @@
 #include <mutex>
 #include <thread>
 
-#include "Isolver.cuh"
+#include "Isolver.hpp"
 #include "CSR.hpp"
 #include "ConcurrentQueue.cpp"
 
 #define NB_THREADS 8
 
 
-class CPUSolver
+class CPUSolver : Isolver
 {
 public:
-    void solve(uint source_node);
+    std::vector<uint> solve(uint source_node);
     void printResults();
     CPUSolver(const std::string &filename);
     ~CPUSolver();

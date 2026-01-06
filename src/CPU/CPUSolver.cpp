@@ -16,7 +16,7 @@ CPUSolver::CPUSolver(const std::string &filename) {
     }
 }
 
-void CPUSolver::solve(uint source_node) {
+std::vector<uint> CPUSolver::solve(uint source_node) {
     distances[source_node] = 0;
     vertexQueue = new ConcurrentQueue();
     vertexQueue->enqueue(source_node);
@@ -25,6 +25,8 @@ void CPUSolver::solve(uint source_node) {
         visitVertices(source_node);
         refillVertexQueue(source_node);
     }
+
+    return {};
 }
 
 void CPUSolver::visitVertices(uint source_node) {
