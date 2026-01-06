@@ -217,9 +217,10 @@ void HybridSolver::refillDeviceVertexQueue() {
     // memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
 
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
+        deviceVertexQueue[vertex] = verticesUpdated[vertex];
+        
         if (verticesUpdated[vertex]) {
             printf("  [refillDevice] putting %d in the deviceQueue\n", vertex);
-            deviceVertexQueue[vertex] = verticesUpdated;
             verticesUpdated[vertex] = false;
         }
     }
