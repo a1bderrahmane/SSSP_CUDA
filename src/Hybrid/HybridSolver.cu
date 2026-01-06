@@ -211,10 +211,15 @@ __global__ void deviceKernel(
 
 void HybridSolver::refillDeviceVertexQueue() {
     // set new device vertex queue to old verticesUpdated
-    memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
+    // memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
 
     // reset verticesUpdated
-    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
+    // memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
+
+    for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
+        deviceVertexQueue[vertex] = verticesUpdated;
+        verticesUpdated[vertex] = false;
+    }
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
