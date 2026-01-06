@@ -41,7 +41,7 @@ int main(int argc, char **argv) {
     //     print_usage(argv[0]);
     //     return 1;
     // }
-
+    filename = argv[2];
     HybridSolver solver(filename);
     solver.solve(0);
     solver.printDistances();
