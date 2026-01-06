@@ -95,8 +95,10 @@ uint HybridSolver::countVerticesInQueue() {
     printf("counting vertices in queue...\n");
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         if (verticesUpdated[vertex]) {
-            printf("  %d is now in queue\n", vertex);
+            printf("  %d is in queue\n", vertex);
             nbVertices++;
+        } else {
+            printf("  %d is not in queue\n", vertex);
         }
     }
     
