@@ -91,10 +91,10 @@ void HybridSolver::printDistances() {
 
 uint HybridSolver::countVerticesInQueue() {
     uint nbVertices = 0;
-
+    printf("counting vertices in queue...\n");
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         if (verticesUpdated[vertex]) {
-            printf("  %d is now in queue", vertex);
+            printf("  %d is now in queue\n", vertex);
             nbVertices++;
         }
     }
