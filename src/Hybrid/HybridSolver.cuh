@@ -10,7 +10,7 @@
 
 static constexpr uint8_t HYBRID_TPB = 32;
 
-static constexpr int NB_CPU_THREADS = 8;
+static constexpr int NB_CPU_THREADS = 2;
 
 class HybridSolver : public Isolver {
 
