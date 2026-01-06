@@ -39,6 +39,7 @@ __global__ void k_workFrontSweep(
         }
     }
 }
+
 GPUsolver::GPUsolver(const std::string &filename)
 {
     csr_graph = new CSR(filename);
@@ -86,7 +87,7 @@ void GPUsolver::workFrontSweepSolver(int source_node)
         uint *ptr_wf_out = thrust::raw_pointer_cast(d_workFront_next.data());
 
         int numBlocks = (nbVertices + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        if (numBlocks > 1024) numBlocks = 1024; 
+        if (numBlocks > 1024) numBlocks = 1024;
         k_workFrontSweep<<<numBlocks, BLOCK_SIZE>>>(
             nbVertices,
             d_row_ptr,

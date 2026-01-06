@@ -18,12 +18,8 @@ void HybridSolver::allocateMemory() {
 
     cudaMallocManaged(&distances, csr_graph->getNumberofVertices() * sizeof(uint));
     cudaMallocManaged(&predecessors, csr_graph->getNumberofVertices() * sizeof(uint));
-
-    // Host memory
-    hostVerticesUpdated = (bool*) malloc(csr_graph->getNumberofVertices() * sizeof(bool));
-
-    // Device memory
-    // TODO (if needed)
+    cudaMallocManaged(&verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
+    cudaMallocManaged(&deviceVertexQueue, csr_graph->getNumberofVertices() * sizeof(bool));
 }
 
 void HybridSolver::initializeData() {
@@ -37,27 +33,51 @@ void HybridSolver::initializeData() {
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         distances[vertex] = UINT_INFINITY;
         predecessors[vertex] = UINT_INFINITY;
-        hostVerticesUpdated[vertex] = false;
+        verticesUpdated[vertex] = false;
+        deviceVertexQueue[vertex] = false;
     }
 }
 
 std::vector<uint> HybridSolver::solve(uint source_node) {
     distances[source_node] = 0;
-    hostVertexQueue = new ConcurrentQueue();
-    hostVertexQueue->enqueue(source_node);
 
-    // Need to update this value after each iteration
-    uint nbNodesInQueue = 1;
+    // Mark source_node as updated so that it is added to the first vertexQueue
+    verticesUpdated[source_node] = true;
 
-    while (nbNodesInQueue > 0) {
-        if (nbNodesInQueue < NB_CPU_THREADS) {
-            // CPU iteration
+    uint nbVerticesInQueue = 1;
+
+    while (nbVerticesInQueue > 0) {
+        if (nbVerticesInQueue < NB_CPU_THREADS) {
+            refillHostVertexQueue();
+            hostKernelLaunch();
         } else {
-            // GPU iteration
+            refillDeviceVertexQueue();
+            deviceKernelLaunch(nbVerticesInQueue);
         }
+
+        nbVerticesInQueue = countVerticesInQueue();
     }
 
     return {};
+}
+
+void HybridSolver::printDistances() {
+    printf("### Hybrid Solver : Results ###\n");
+    for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
+        printf("- distance to vertex %d : %d\n", vertex, distances[vertex]);
+    }
+}
+
+uint HybridSolver::countVerticesInQueue() {
+    uint nbVertices = 0;
+
+    for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
+        if (verticesUpdated[vertex]) {
+            nbVertices++;
+        }
+    }
+    
+    return nbVertices;
 }
 
 
@@ -65,6 +85,19 @@ std::vector<uint> HybridSolver::solve(uint source_node) {
 ///                                 Host kernel                                        ///
 //////////////////////////////////////////////////////////////////////////////////////////
 
+
+void HybridSolver::hostKernelLaunch() {
+    // launch all threads
+    for (int i = 0; i < NB_CPU_THREADS; i++) {
+        hostThreadPool[i] = new std::thread (&HybridSolver::hostKernel, this);
+    }
+
+    // wait for all threads to finish
+    for (int i = 0; i < NB_CPU_THREADS; i++) {
+        hostThreadPool[i]->join();
+        delete hostThreadPool[i];
+    }
+}
 
 void HybridSolver::hostKernel() {
     // Dequeue vertices until vertex queue is empty
@@ -77,7 +110,7 @@ void HybridSolver::hostKernel() {
         }
         
         // Iterate on every edges of our vertex
-        for (int i = row_ptr[vertex]; i < row_ptr[vertex + 1]; i++) {
+        for (uint i = row_ptr[vertex]; i < row_ptr[vertex + 1]; i++) {
             uint neighboor = col_idx[i];
             uint8_t edgeWeight = weights[i];
             
@@ -96,7 +129,18 @@ void HybridSolver::hostUpdateOutput(uint vertex, uint neighboor, uint8_t edgeWei
     if (distances[neighboor] > distances[vertex] + edgeWeight) {
         distances[neighboor] = distances[vertex] + edgeWeight;
         predecessors[neighboor] = vertex;
-        hostVerticesUpdated[neighboor] = true;
+        verticesUpdated[neighboor] = true;
+    }
+}
+
+void HybridSolver::refillHostVertexQueue() {
+    hostVertexQueue = new ConcurrentQueue();
+
+    for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
+        if (verticesUpdated[vertex]) {
+            hostVertexQueue->enqueue(vertex);
+            verticesUpdated[vertex] = false;
+        }
     }
 }
 
@@ -106,37 +150,56 @@ void HybridSolver::hostUpdateOutput(uint vertex, uint neighboor, uint8_t edgeWei
 //////////////////////////////////////////////////////////////////////////////////////////
 
 
-__global__ void HybridSolver::deviceKernel(
-    int num_vertices,
-    const uint *row_ptr,
-    const uint *col_idx,
-    const uint8_t *weights,
-    uint *distances,
-    const uint *workFront_in,
-    uint *workFront_out)
-{
+__global__ void deviceKernel(
+    bool* deviceVertexQueue,
+    bool* verticesUpdated,
+    uint* row_ptr,
+    uint* col_idx,
+    uint8_t* weights,
+    uint* distances,
+    uint nbVerticesInGraph
+) {
     int tid = utils::get_global_id();
     int totalThreads = utils::get_total_threads();
 
-    for (int i = tid; i < num_vertices; i += totalThreads) {
-        if (workFront_in[i] == 1) {
+    for (int i = tid; i < nbVerticesInGraph; i += totalThreads) {
+        if (deviceVertexQueue[i]) {
             uint start_edge = row_ptr[i];
             uint end_edge = row_ptr[i + 1];
 
             for (uint edge = start_edge; edge < end_edge; edge++) {
-                int destination = col_idx[edge];
-                int weight = weights[edge];
+                uint destination = col_idx[edge];
+                uint8_t weight = weights[edge];
                 
-                if(distances[i] == UINT_MAX) continue;
+                if(distances[i] == UINT_INFINITY) continue;
 
                 uint new_dist = distances[i] + weight;
                 
                 uint old_dist = atomicMin(&distances[destination], new_dist);
 
                 if (new_dist < old_dist) {
-                    workFront_out[destination] = 1;
+                    verticesUpdated[destination] = true;
                 }
             }
         }
     }
+}
+
+void HybridSolver::refillDeviceVertexQueue() {
+    deviceVertexQueue = verticesUpdated;
+}
+
+void HybridSolver::deviceKernelLaunch(uint nbVertices) {
+    int numBlocks = (nbVertices + BLOCK_SIZE - 1) / BLOCK_SIZE;
+        if (numBlocks > 1024) numBlocks = 1024;
+        deviceKernel<<<numBlocks, BLOCK_SIZE>>>(
+            deviceVertexQueue,
+            verticesUpdated,
+            row_ptr,
+            col_idx,
+            weights,
+            distances,
+            nbVertices
+        );
+        cudaDeviceSynchronize();
 }

@@ -20,6 +20,7 @@ class HybridSolver : public Isolver {
 
 public:
     std::vector<uint> solve(uint source_node) override;
+    void printDistances();
     HybridSolver(const std::string &filename);
     ~HybridSolver() override;
 
@@ -34,29 +35,26 @@ private:
     int* nbEdgesPointer;
     uint *distances;
     uint *predecessors;
+    bool* verticesUpdated;
+    bool* deviceVertexQueue;
 
-    // Host data
-    bool* hostVerticesUpdated;
+    // Host
     std::mutex hostOutputWriterMutex;
     ConcurrentQueue *hostVertexQueue;
     std::thread* hostThreadPool[NB_CPU_THREADS];
-    void HybridSolver::hostKernel();
-    void HybridSolver::hostUpdateOutput(uint vertex, uint neighboor, uint8_t edgeWeight);
+    void hostKernelLaunch();
+    void hostKernel();
+    void hostUpdateOutput(uint vertex, uint neighboor, uint8_t edgeWeight);
+    void refillHostVertexQueue();
 
-    // Device data
-    // TODO
+    // Device
+    void refillDeviceVertexQueue();
+    void deviceKernelLaunch(uint nbVertices);
 
+    // Main thread methods
     void allocateMemory();
     void initializeData();
-    __global__ void deviceKernel(
-        int num_vertices,
-        const uint *row_ptr,
-        const uint *col_idx,
-        const uint8_t *weights,
-        uint *distances,
-        const uint *workFront_in,
-        uint *workFront_out
-    );
+    uint countVerticesInQueue();
 };
 
 #endif // HYBRID_SOLVER_CUH

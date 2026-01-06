@@ -36,26 +36,5 @@ namespace utils
         auto new_end = thrust::unique(arr.begin(), arr.end());
         arr.erase(new_end, arr.end());
     }
-    
-    inline thrust::device_vector<int> compact(thrust::device_vector<uint> &arr)
-    {
-        if (arr.empty())
-        {
-            return thrust::device_vector<int>();
-        }
-        thrust::device_vector<int> d_output(arr.size());
-       
-        auto d_indices_begin = thrust::make_counting_iterator(0);
-        auto new_end = thrust::copy_if(
-            thrust::cuda::par,
-            d_indices_begin,
-            d_indices_begin + arr.size(),
-            arr.begin(), 
-            d_output.begin(),
-            IsNonZero() 
-        );
-        d_output.resize(std::distance(d_output.begin(), new_end));
-        return d_output;
-    }
-};
+}
 #endif
