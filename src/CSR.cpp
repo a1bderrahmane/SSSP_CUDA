@@ -17,10 +17,11 @@ void CSR::initDistances()
 }
 u_int8_t CSR::generateRandomWeight()
 {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> gen(minWeight, maxWeight);
-    return (u_int8_t)gen(rng);
+    // std::random_device dev;
+    // std::mt19937 rng(dev());
+    // std::uniform_int_distribution<std::mt19937::result_type> gen(minWeight, maxWeight);
+    // return (u_int8_t)gen(rng);
+    return 1;
 }
 
 void CSR::makeAdjacencies(const std::string &filename)
