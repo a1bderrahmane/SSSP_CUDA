@@ -4,7 +4,6 @@ import re
 import shutil
 import subprocess
 import sys
-import tempfile
 from pathlib import Path
 
 import pandas as pd
@@ -23,7 +22,7 @@ PERF_CMD_BASE = [
     "10",
     "--no-big-num",
     "-e",
-    "duration_time,user_time,system_time",
+    "duration_time",
     "-x",
     ",",
 ]
@@ -127,82 +126,83 @@ def main():
     if not dataset_files:
         sys.exit(f"No datasets (*.txt) found in {DATASETS_DIR}")
 
-    with tempfile.TemporaryDirectory() as tmp_dir:
-        tmp = Path(tmp_dir)
-        for graph_file in dataset_files:
-            dataset_name = graph_file.name
-            solution_file = SOLUTIONS_DIR / dataset_name
-            if not solution_file.is_file():
-                print(f"[SKIP] {dataset_name}: missing solution file {solution_file}")
-                results.append(
-                    {
-                        "test_name": dataset_name,
-                        "cpu_time_ns": float("nan"),
-                        "cpu_time_spread": float("nan"),
-                        "status": "SKIP",
-                    }
-                )
-                continue
+    logs_dir = REPO_ROOT / "tmp_test_logs"
+    logs_dir.mkdir(exist_ok=True)
 
-            print(f"[RUN ] {dataset_name}")
-            output_file = tmp / f"{dataset_name}.out"
-            log_file = tmp / f"{dataset_name}.log"
-            perf_output = tmp / f"{dataset_name}.perf"
-
-            cmd = PERF_CMD_BASE + [
-                "--",
-                str(EXECUTABLE),
-                "-i",
-                str(graph_file),
-                "-n",
-                str(SOURCE_NODE),
-                "--seed",
-                str(SEED_VALUE),
-                "-o",
-                str(output_file),
-                "-l",
-                str(log_file),
-            ]
-
-            proc = subprocess.run(
-                cmd,
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.PIPE,
-                text=True,
+    for graph_file in dataset_files:
+        dataset_name = graph_file.name
+        solution_file = SOLUTIONS_DIR / dataset_name
+        if not solution_file.is_file():
+            print(f"[SKIP] {dataset_name}: missing solution file {solution_file}")
+            results.append(
+                {
+                    "test_name": dataset_name,
+                    "cpu_time_ns": float("nan"),
+                    "cpu_time_spread": float("nan"),
+                    "status": "SKIP",
+                }
             )
-            perf_output.write_text(proc.stderr or "", encoding="utf-8")
-            metrics = parse_perf(proc.stderr or "")
-            duration = metrics.get("duration_time", {})
-            cpu_time_ns = duration.get("value", float("nan"))
-            cpu_time_spread = duration.get("spread", float("nan"))
+            continue
 
-            if proc.returncode != 0:
-                print(f"       Solver failed (see {log_file})")
-                results.append(
-                    {
-                        "test_name": dataset_name,
-                        "cpu_time_ns": cpu_time_ns,
-                        "cpu_time_spread": cpu_time_spread,
-                        "status": "FAIL",
-                    }
-                )
-                continue
+        print(f"[RUN ] {dataset_name}")
+        output_file = logs_dir / f"{dataset_name}.out"
+        log_file = logs_dir / f"{dataset_name}.log"
+        perf_output = logs_dir / f"{dataset_name}.perf"
 
-            ok, detail = compare_distances(solution_file, output_file)
-            status = "PASS" if ok else "FAIL"
-            if status == "FAIL":
-                print(f"[FAIL] {dataset_name} {detail}")
-            else:
-                print(f"[PASS] {dataset_name}")
+        cmd = PERF_CMD_BASE + [
+            "--",
+            str(EXECUTABLE),
+            "-i",
+            str(graph_file),
+            "-n",
+            str(SOURCE_NODE),
+            "--seed",
+            str(SEED_VALUE),
+            "-o",
+            str(output_file),
+            "-l",
+            str(log_file),
+        ]
 
+        proc = subprocess.run(
+            cmd,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.PIPE,
+            text=True,
+        )
+        perf_output.write_text(proc.stderr or "", encoding="utf-8")
+        metrics = parse_perf(proc.stderr or "")
+        duration = metrics.get("duration_time", {})
+        cpu_time_ns = duration.get("value", float("nan"))
+        cpu_time_spread = duration.get("spread", float("nan"))
+
+        if proc.returncode != 0:
+            print(f"       Solver failed (see {log_file})")
             results.append(
                 {
                     "test_name": dataset_name,
                     "cpu_time_ns": cpu_time_ns,
                     "cpu_time_spread": cpu_time_spread,
-                    "status": status,
+                    "status": "FAIL",
                 }
             )
+            continue
+
+        ok, detail = compare_distances(solution_file, output_file)
+        status = "PASS" if ok else "FAIL"
+        if status == "FAIL":
+            print(f"[FAIL] {dataset_name} {detail}")
+        else:
+            print(f"[PASS] {dataset_name}")
+
+        results.append(
+            {
+                "test_name": dataset_name,
+                "cpu_time_ns": cpu_time_ns,
+                "cpu_time_spread": cpu_time_spread,
+                "status": status,
+            }
+        )
 
     df = pd.DataFrame(
         results, columns=["test_name", "cpu_time_ns", "cpu_time_spread", "status"]
