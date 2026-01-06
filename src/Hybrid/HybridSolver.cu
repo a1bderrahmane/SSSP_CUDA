@@ -67,6 +67,7 @@ std::vector<uint> HybridSolver::solve(uint source_node) {
     uint nbVerticesInQueue = 1;
 
     while (nbVerticesInQueue > 0) {
+        printDistances();
         if (nbVerticesInQueue < NB_CPU_THREADS) {
             printf("[Hybrid] new host iteration...\n");
             refillHostVertexQueue();
