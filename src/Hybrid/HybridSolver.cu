@@ -3,8 +3,9 @@
 
 HybridSolver::HybridSolver(const std::string &filename) {
     csr_graph = new CSR(filename);
-
+    printf("allocating unified memory...\n");
     allocateMemory();
+    printf("initializing data...\n");
     initializeData();
 }
 
@@ -37,13 +38,16 @@ void HybridSolver::allocateMemory() {
 }
 
 void HybridSolver::initializeData() {
+    printf("  starting memcpy...\n");
     memcpy(row_ptr, csr_graph->getRowPtr(), (csr_graph->getNumberofVertices() + 1) * sizeof(uint));
     memcpy(col_idx, csr_graph->getColIdx(), csr_graph->getNumberOfEdges() * sizeof(uint));
-    memcpy(col_idx, csr_graph->getWeights(), csr_graph->getNumberOfEdges() * sizeof(uint));
+    memcpy(weights, csr_graph->getWeights(), csr_graph->getNumberOfEdges() * sizeof(uint));
 
+    printf("  starting write on pointers...\n");
     *nbVerticesPointer = csr_graph->getNumberofVertices();
     *nbEdgesPointer = csr_graph->getNumberOfEdges();
 
+    printf("  starting loop initialization...\n");
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         distances[vertex] = UINT_INFINITY;
         predecessors[vertex] = UINT_INFINITY;
@@ -63,9 +67,11 @@ std::vector<uint> HybridSolver::solve(uint source_node) {
 
     while (nbVerticesInQueue > 0) {
         if (nbVerticesInQueue < NB_CPU_THREADS) {
+            printf("[Hybrid] new host iteration...\n");
             refillHostVertexQueue();
             hostKernelLaunch();
         } else {
+            printf("[Hybrid] new device iteration...\n");
             refillDeviceVertexQueue();
             deviceKernelLaunch(nbVerticesInQueue);
         }
