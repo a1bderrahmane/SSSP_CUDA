@@ -18,6 +18,7 @@ CPUSolver::CPUSolver(const std::string &filename) {
 
 std::vector<uint> CPUSolver::solve(uint source_node) {
     distances[source_node] = 0;
+    predecessors[source_node] = 0;
     vertexQueue = new ConcurrentQueue();
     vertexQueue->enqueue(source_node);
 
@@ -48,7 +49,7 @@ void CPUSolver::visitVerticesThreadWork(uint source_node) {
         uint vertex = vertexQueue->dequeue();
 
         if (vertex == UINT_INFINITY) {
-            // Queue is empty
+            // Queue is emptyQueue
             return;
         }
         
@@ -58,7 +59,7 @@ void CPUSolver::visitVerticesThreadWork(uint source_node) {
             uint8_t edgeWeight = weights[i];
             
             // Take the lock only if it seems that we need to update output
-            if (distances[neighboor] > distances[vertex] + edgeWeight) {
+            if (distances[neighboor] > (distances[vertex] + edgeWeight)) {
                 updateOutputThreadWork(vertex, neighboor, edgeWeight);
             }
         }
@@ -88,10 +89,9 @@ void CPUSolver::refillVertexQueue(uint source_node) {
 }
 
 void CPUSolver::printResults(std::ostream &out) {
-    out << "### CPU Solver : Results ###\n";
+    out << "node, distance_to, predecessor\n";
     for (uint vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
-        out << "- distance to vertex " << vertex << " : " << distances[vertex] << "\n";
-        out << "  predecessor of " << vertex << " : " << predecessors[vertex] << "\n";
+        out << vertex << ", " << distances[vertex] << ", " << predecessors[vertex] << "\n";
     }
 }
 
