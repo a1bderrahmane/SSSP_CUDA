@@ -3,10 +3,7 @@
 
 HybridSolver::HybridSolver(const std::string &filename) {
     csr_graph = new CSR(filename);
-    printf("number of vertices in the graph : %d\n", csr_graph->getNumberofVertices());
-    printf("allocating unified memory...\n");
     allocateMemory();
-    printf("initializing data...\n");
     initializeData();
 }
 
@@ -39,16 +36,13 @@ void HybridSolver::allocateMemory() {
 }
 
 void HybridSolver::initializeData() {
-    printf("  starting memcpy...\n");
     memcpy(row_ptr, csr_graph->getRowPtr(), (csr_graph->getNumberofVertices() + 1) * sizeof(uint));
     memcpy(col_idx, csr_graph->getColIdx(), csr_graph->getNumberOfEdges() * sizeof(uint));
     memcpy(weights, csr_graph->getWeights(), csr_graph->getNumberOfEdges() * sizeof(uint));
 
-    printf("  starting write on pointers...\n");
     *nbVerticesPointer = csr_graph->getNumberofVertices();
     *nbEdgesPointer = csr_graph->getNumberOfEdges();
 
-    printf("  starting loop initialization...\n");
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         distances[vertex] = UINT_INFINITY;
         predecessors[vertex] = UINT_INFINITY;
@@ -67,7 +61,6 @@ std::vector<uint> HybridSolver::solve(uint source_node) {
     uint nbVerticesInQueue = 1;
 
     while (nbVerticesInQueue > 0) {
-        printDistances();
         if (nbVerticesInQueue < NB_CPU_THREADS) {
             printf("[Hybrid] new host iteration...\n");
             refillHostVertexQueue();
@@ -93,10 +86,8 @@ void HybridSolver::printDistances() {
 
 uint HybridSolver::countVerticesInQueue() {
     uint nbVertices = 0;
-    printf("counting vertices in queue...\n");
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
         if (verticesUpdated[vertex]) {
-            printf("  %d is in queue\n", vertex);
             nbVertices++;
         }
     }
@@ -209,31 +200,16 @@ __global__ void deviceKernel(
     }
 }
 
-// __global__ void deviceRefillKernel(bool* deviceVertexQueue, bool* verticesUpdated, uint nbVerticesInGraph) {
-//     int tid = blockIdx.x * blockDim.x + threadIdx.x;
-//     int totalThreads = gridDim.x * blockDim.x;
-// } 
-
 void HybridSolver::refillDeviceVertexQueue() {
     // set new device vertex queue to old verticesUpdated
-    // memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
+    memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
 
     // reset verticesUpdated
-    // memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
-
-    for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
-        deviceVertexQueue[vertex] = verticesUpdated[vertex];
-        
-        if (verticesUpdated[vertex]) {
-            printf("  [refillDevice] putting %d in the deviceQueue\n", vertex);
-            verticesUpdated[vertex] = false;
-        }
-    }
+    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
     int numBlocks = (nbVertices + HYBRID_TPB - 1) / HYBRID_TPB;
-    printf("numBlocks : %d\n", numBlocks);
 
         // if (numBlocks > 1024) numBlocks = 1024;
         deviceKernel<<<numBlocks, HYBRID_TPB>>>(
