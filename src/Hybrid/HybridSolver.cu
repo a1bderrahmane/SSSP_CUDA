@@ -209,6 +209,11 @@ __global__ void deviceKernel(
     }
 }
 
+// __global__ void deviceRefillKernel(bool* deviceVertexQueue, bool* verticesUpdated, uint nbVerticesInGraph) {
+//     int tid = blockIdx.x * blockDim.x + threadIdx.x;
+//     int totalThreads = gridDim.x * blockDim.x;
+// } 
+
 void HybridSolver::refillDeviceVertexQueue() {
     // set new device vertex queue to old verticesUpdated
     // memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
@@ -238,7 +243,7 @@ void HybridSolver::deviceKernelLaunch(uint nbVertices) {
             col_idx,
             weights,
             distances,
-            nbVertices
+            csr_graph->getNumberofVertices()
         );
         cudaDeviceSynchronize();
 }
