@@ -229,6 +229,14 @@ void HybridSolver::refillDeviceVertexQueue() {
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
     int numBlocks = (nbVertices + HYBRID_TPB - 1) / HYBRID_TPB;
     printf("numBlocks : %d\n", numBlocks);
+
+    cudaMemLocation gpuLocation = {cudaMemLocationTypeDevice, 0};
+    cudaMemPrefetchAsync(
+        deviceVertexQueue,
+        csr_graph->getNumberofVertices() * sizeof(bool),
+        gpuLocation,
+        0);
+
         // if (numBlocks > 1024) numBlocks = 1024;
         deviceKernel<<<numBlocks, HYBRID_TPB>>>(
             deviceVertexQueue,

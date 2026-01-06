@@ -4,6 +4,7 @@
 #include "Isolver.hpp"
 #include "CSR.hpp"
 #include "ConcurrentQueue.hpp"
+#include <cuda_runtime.h>
 
 #include <mutex>
 #include <thread>
