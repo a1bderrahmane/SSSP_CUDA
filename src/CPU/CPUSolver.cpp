@@ -85,11 +85,11 @@ void CPUSolver::refillVertexQueue(uint source_node) {
     }
 }
 
-void CPUSolver::printResults() {
-    printf("### CPU Solver : Results ###\n");
+void CPUSolver::printResults(std::ostream &out) {
+    out << "### CPU Solver : Results ###\n";
     for (uint vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {
-        printf("- distance to vertex %u : %u\n", vertex, distances[vertex]);
-        printf("  predecessor of %u : %u\n", vertex, predecessors[vertex]);
+        out << "- distance to vertex " << vertex << " : " << distances[vertex] << "\n";
+        out << "  predecessor of " << vertex << " : " << predecessors[vertex] << "\n";
     }
 }
 

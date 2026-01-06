@@ -2,3 +2,5 @@
 .vscode/
 obj/
 exec/
+log.txt
+output.txt
