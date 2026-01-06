@@ -3,6 +3,7 @@
 
 HybridSolver::HybridSolver(const std::string &filename) {
     csr_graph = new CSR(filename);
+    printf("number of vertices in the graph : %d\n", csr_graph->getNumberofVertices());
     printf("allocating unified memory...\n");
     allocateMemory();
     printf("initializing data...\n");
