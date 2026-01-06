@@ -10,8 +10,8 @@ __global__ void k_workFrontSweep(
     const uint *workFront_in,
     uint *workFront_out)
 {
-    int tid = utils::get_global_id();
-    int totalThreads = utils::get_total_threads();
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int totalThreads = gridDim.x * blockDim.x;
 
     for (int i = tid; i < num_vertices; i += totalThreads)
     {

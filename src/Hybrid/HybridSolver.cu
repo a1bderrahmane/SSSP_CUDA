@@ -173,8 +173,8 @@ __global__ void deviceKernel(
     uint* distances,
     uint nbVerticesInGraph
 ) {
-    int tid = utils::get_global_id();
-    int totalThreads = utils::get_total_threads();
+    int tid = blockIdx.x * blockDim.x + threadIdx.x;
+    int totalThreads = gridDim.x * blockDim.x;
 
     for (int i = tid; i < nbVerticesInGraph; i += totalThreads) {
         if (deviceVertexQueue[i]) {
@@ -204,9 +204,9 @@ void HybridSolver::refillDeviceVertexQueue() {
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
-    int numBlocks = (nbVertices + BLOCK_SIZE - 1) / BLOCK_SIZE;
-        if (numBlocks > 1024) numBlocks = 1024;
-        deviceKernel<<<numBlocks, BLOCK_SIZE>>>(
+    int numBlocks = (nbVertices + HYBRID_TPB - 1) / HYBRID_TPB;
+        // if (numBlocks > 1024) numBlocks = 1024;
+        deviceKernel<<<numBlocks, HYBRID_TPB>>>(
             deviceVertexQueue,
             verticesUpdated,
             row_ptr,

@@ -4,15 +4,12 @@
 #include "Isolver.hpp"
 #include "CSR.hpp"
 #include "cuda_runtime.h"
-#include "utils.cuh"
-#include "ConcurrentQueue.cpp"
+#include "ConcurrentQueue.hpp"
 
 #include <mutex>
 #include <thread>
 
-static constexpr int BLOCK_SIZE = 1024;
-static constexpr uint8_t GRID_SIZE = 40;
-static constexpr uint8_t WARP_SIZE = 32;
+static constexpr uint8_t HYBRID_TPB = 32;
 
 static constexpr int NB_CPU_THREADS = 8;
 
