@@ -24,6 +24,7 @@ class CSR
 {
 public:
     CSR(const std::string &filename);
+    static void setRandomSeed(uint32_t seed);
     ~CSR();
 
     std::vector<std::pair<uint, uint>> edges;

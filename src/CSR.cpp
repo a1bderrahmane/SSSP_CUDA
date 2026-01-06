@@ -1,5 +1,19 @@
 #include "CSR.hpp"
 
+namespace {
+std::mt19937 csr_rng;
+std::uniform_int_distribution<int> csr_weight_dist(minWeight, maxWeight);
+bool csr_rng_seeded = false;
+
+void ensure_csr_rng_seeded() {
+    if (!csr_rng_seeded) {
+        std::random_device dev;
+        csr_rng.seed(dev());
+        csr_rng_seeded = true;
+    }
+}
+} // namespace
+
 CSR::CSR(const std::string &filename)
 {
     num_edges=0;
@@ -15,12 +29,15 @@ void CSR::initDistances()
         distances[i]=UINT32_MAX;
     }
 }
+void CSR::setRandomSeed(uint32_t seed) {
+    csr_rng.seed(seed);
+    csr_rng_seeded = true;
+}
+
 u_int8_t CSR::generateRandomWeight()
 {
-    std::random_device dev;
-    std::mt19937 rng(dev());
-    std::uniform_int_distribution<std::mt19937::result_type> gen(minWeight, maxWeight);
-    return (u_int8_t)gen(rng);
+    ensure_csr_rng_seeded();
+    return static_cast<u_int8_t>(csr_weight_dist(csr_rng));
 }
 
 void CSR::makeAdjacencies(const std::string &filename)
@@ -128,6 +145,9 @@ int CSR::getAverageDegree()
 
 // We generate the weights randomly following a uniform distribution
 // So instead of getting the exact average we will just consider the 
+
+// is this tre, on a sufficitly large graph it is, but for small graphs
+// we can easly have significant bias here  ~ Borna
 int CSR::getAverageEdgeWeight()
 {
     return (maxWeight - minWeight) / 2;

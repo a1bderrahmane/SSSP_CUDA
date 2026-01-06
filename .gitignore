@@ -4,3 +4,4 @@ obj/
 exec/
 log.txt
 output.txt
+**/__pycache__/

@@ -1,14 +1,16 @@
+#include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <getopt.h>
 #include "CPUSolver.hpp"
+#include "CSR.hpp"
 
 namespace {
 void print_usage(const char *prog) {
-    std::cerr << "Usage: " << prog << " -i <path/to/graph> [-o <output_file>] [-l <log_file>]\n"
-              << "       " << prog << " --input_graph <path/to/graph> [--output <output_file>] [--log <log_file>]\n";
+    std::cerr << "Usage: " << prog << " -i <path/to/graph> [-o <output_file>] [-l <log_file>] [-n <source_node>] [--seed <value>]\n"
+              << "       " << prog << " --input_graph <path/to/graph> [--output <output_file>] [--log <log_file>] [--node <source_node>] [--seed <value>]\n";
 }
 } // namespace
 
@@ -16,15 +18,20 @@ int main(int argc, char **argv) {
     std::string filename;
     std::string output_path;
     std::string log_path;
+    bool seed_provided = false;
+    uint32_t seed_value = 0;
+    uint source_node = 0;
     const option long_opts[] = {
         {"input_graph", required_argument, nullptr, 'i'},
         {"output", required_argument, nullptr, 'o'},
+        {"node", required_argument, nullptr, 'n'},
         {"log", required_argument, nullptr, 'l'},
+        {"seed", required_argument, nullptr, 's'},
         {"help", no_argument, nullptr, 'h'},
         {nullptr, 0, nullptr, 0}};
 
     int opt;
-    while ((opt = getopt_long(argc, argv, "i:o:l:h", long_opts, nullptr)) != -1) {
+    while ((opt = getopt_long(argc, argv, "i:o:l:n:s:h", long_opts, nullptr)) != -1) {
         switch (opt) {
         case 'i':
             filename = optarg;
@@ -35,6 +42,27 @@ int main(int argc, char **argv) {
         case 'l':
             log_path = optarg;
             break;
+        case 'n': {
+            char *end = nullptr;
+            long value = std::strtol(optarg, &end, 10);
+            if (optarg == end || *end != '\0' || value < 0) {
+                std::cerr << "Invalid node id: " << optarg << "\n";
+                return 1;
+            }
+            source_node = static_cast<uint>(value);
+            break;
+        }
+        case 's': {
+            char *end = nullptr;
+            long value = std::strtol(optarg, &end, 10);
+            if (optarg == end || *end != '\0' || value < 0) {
+                std::cerr << "Invalid seed: " << optarg << "\n";
+                return 1;
+            }
+            seed_provided = true;
+            seed_value = static_cast<uint32_t>(value);
+            break;
+        }
         case 'h':
         default:
             print_usage(argv[0]);
@@ -69,10 +97,18 @@ int main(int argc, char **argv) {
         output_stream = &output_file;
     }
 
+    if (seed_provided) {
+        CSR::setRandomSeed(seed_value);
+    }
+
     *log_stream << "Running CPU solver on: " << filename << "\n";
+    *log_stream << "Source node: " << source_node << "\n";
+    if (seed_provided) {
+        *log_stream << "Using RNG seed: " << seed_value << "\n";
+    }
 
     CPUSolver solver(filename);
-    solver.solve(0);
+    solver.solve(source_node);
     *log_stream << "Computation complete. Writing results to "
                 << (output_path.empty() ? "stdout" : output_path) << "\n";
     solver.printResults(*output_stream);
