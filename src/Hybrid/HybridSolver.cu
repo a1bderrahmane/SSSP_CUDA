@@ -208,6 +208,7 @@ __global__ void deviceKernel(
 
 void HybridSolver::refillDeviceVertexQueue() {
     deviceVertexQueue = verticesUpdated;
+    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices());
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
