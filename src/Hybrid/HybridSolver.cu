@@ -214,7 +214,7 @@ void HybridSolver::refillDeviceVertexQueue() {
     memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
 
     // reset verticesUpdated
-    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices());
+    memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices() * sizeof(bool));
 }
 
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
