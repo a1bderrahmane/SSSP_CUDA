@@ -1,5 +1,8 @@
 /* Based on code from : https://cppscripts.com/cpp-concurrent-queue */
 
+#ifndef CONCURRENT_QUEUE_HPP
+#define CONCURRENT_QUEUE_HPP
+
 #include <queue>
 #include <mutex>
 #include <condition_variable>
@@ -41,3 +44,5 @@ private:
     std::mutex mutex_;
     std::condition_variable cond_var_;
 };
+
+#endif // CONCURRENT_QUEUE_HPP

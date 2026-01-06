@@ -7,7 +7,7 @@
 
 #include "Isolver.hpp"
 #include "CSR.hpp"
-#include "ConcurrentQueue.cpp"
+#include "ConcurrentQueue.hpp"
 
 #define NB_THREADS 8
 
