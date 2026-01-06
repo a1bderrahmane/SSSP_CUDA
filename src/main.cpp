@@ -3,7 +3,7 @@
 #include <vector>
 #include <getopt.h>
 #include "CPUSolver.hpp"
-#include "GPUsolver.cuh"
+// #include "GPUsolver.cuh"
 #include "HybridSolver.cuh"
 
 namespace {
