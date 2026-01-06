@@ -97,8 +97,6 @@ uint HybridSolver::countVerticesInQueue() {
         if (verticesUpdated[vertex]) {
             printf("  %d is in queue\n", vertex);
             nbVertices++;
-        } else {
-            printf("  %d is not in queue\n", vertex);
         }
     }
     
@@ -211,10 +209,8 @@ __global__ void deviceKernel(
 }
 
 void HybridSolver::refillDeviceVertexQueue() {
-    // set new divice vertex queue to old verticesUpdated
-    // bool* tmp = deviceVertexQueue;
+    // set new device vertex queue to old verticesUpdated
     memcpy(deviceVertexQueue, verticesUpdated, csr_graph->getNumberofVertices() * sizeof(bool));
-    // verticesUpdated = tmp;
 
     // reset verticesUpdated
     memset(verticesUpdated, (int) false, (size_t) csr_graph->getNumberofVertices());
@@ -223,6 +219,7 @@ void HybridSolver::refillDeviceVertexQueue() {
 void HybridSolver::deviceKernelLaunch(uint nbVertices) {
     int numBlocks = (nbVertices + HYBRID_TPB - 1) / HYBRID_TPB;
         // if (numBlocks > 1024) numBlocks = 1024;
+        printf("");
         deviceKernel<<<numBlocks, HYBRID_TPB>>>(
             deviceVertexQueue,
             verticesUpdated,
