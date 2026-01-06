@@ -8,6 +8,20 @@ HybridSolver::HybridSolver(const std::string &filename) {
     initializeData();
 }
 
+HybridSolver::~HybridSolver() {
+    cudaFree(row_ptr);
+    cudaFree(col_idx);
+    cudaFree(weights);
+
+    cudaFree(nbEdgesPointer);
+    cudaFree(nbVerticesPointer);
+
+    cudaFree(distances);
+    cudaFree(predecessors);
+    cudaFree(verticesUpdated);
+    cudaFree(deviceVertexQueue);
+}
+
 void HybridSolver::allocateMemory() {
     cudaMallocManaged(&row_ptr, (csr_graph->getNumberofVertices() + 1) * sizeof(uint));
     cudaMallocManaged(&col_idx, csr_graph->getNumberOfEdges() * sizeof(uint));
