@@ -29,6 +29,7 @@ int main(int argc, char **argv) {
             break;
         case 'v':
             solverVersion = optarg;
+            break;
         case 'h':
         default:
             print_usage(argv[0]);
