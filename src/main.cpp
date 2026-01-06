@@ -21,27 +21,27 @@ int main(int argc, char **argv) {
         {"solver_version", required_argument, nullptr, 'v'},
         {"help", no_argument, nullptr, 'h'}};
 
-    int opt;
-    while ((opt = getopt_long(argc, argv, "i:h:v", long_opts, nullptr)) != -1) {
-        switch (opt) {
-        case 'i':
-            filename = optarg;
-            break;
-        case 'v':
-            solverVersion = optarg;
-            break;
-        case 'h':
-        default:
-            print_usage(argv[0]);
-            return (opt == 'h') ? 0 : 1;
-        }
-    }
-    printf("1 ");
-    if (filename.empty() || solverVersion.empty()) {
-        print_usage(argv[0]);
-        return 1;
-    }
-    printf("2\n");
+    // int opt;
+    // while ((opt = getopt_long(argc, argv, "i:h:v", long_opts, nullptr)) != -1) {
+    //     switch (opt) {
+    //     case 'i':
+    //         filename = optarg;
+    //         break;
+    //     case 'v':
+    //         solverVersion = optarg;
+    //         break;
+    //     case 'h':
+    //     default:
+    //         print_usage(argv[0]);
+    //         return (opt == 'h') ? 0 : 1;
+    //     }
+    // }
+
+    // if (filename.empty() || solverVersion.empty()) {
+    //     print_usage(argv[0]);
+    //     return 1;
+    // }
+
     HybridSolver solver(filename);
     solver.solve(0);
     solver.printDistances();
