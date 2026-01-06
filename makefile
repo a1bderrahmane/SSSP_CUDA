@@ -10,7 +10,7 @@ COMMON_FLAGS := -O3
 NVCC_FLAGS   := $(ARCH) $(COMMON_FLAGS) --compiler-options "-Wall -Wextra"
 LDFLAGS      := $(ARCH)
 
-INCLUDES    := -I./src -I./src/CPU -I./src/GPU -I./src/Hybrid
+INCLUDES    := -I./src -I./src/CPU -I./src/GPU -I./src/Hybrid -I/usr/local/cuda/include -L/usr/local/cuda/lib64 -lcudart
 
 SRC_DIR     := src
 OBJ_DIR     := obj
