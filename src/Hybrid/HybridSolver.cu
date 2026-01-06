@@ -231,6 +231,7 @@ void HybridSolver::deviceKernelLaunch(uint nbVertices) {
     printf("numBlocks : %d\n", numBlocks);
 
     cudaMemLocation gpuLocation = {cudaMemLocationTypeDevice, 0};
+    cudaMemLocation cpuLocation = {cudaMemLocationTypeHost, 0};
     cudaMemPrefetchAsync(
         deviceVertexQueue,
         csr_graph->getNumberofVertices() * sizeof(bool),
@@ -248,4 +249,10 @@ void HybridSolver::deviceKernelLaunch(uint nbVertices) {
             nbVertices
         );
         cudaDeviceSynchronize();
+
+        cudaMemPrefetchAsync(
+        distances,
+        csr_graph->getNumberofVertices() * sizeof(uint),
+        cpuLocation,
+        0);
 }
