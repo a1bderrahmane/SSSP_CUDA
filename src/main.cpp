@@ -35,12 +35,12 @@ int main(int argc, char **argv) {
             return (opt == 'h') ? 0 : 1;
         }
     }
-
+    printf("1 ");
     if (filename.empty() || solverVersion.empty()) {
         print_usage(argv[0]);
         return 1;
     }
-
+    printf("2\n");
     HybridSolver solver(filename);
     solver.solve(0);
     solver.printDistances();
