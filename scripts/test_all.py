@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import argparse
 import re
 import shutil
 import subprocess
@@ -108,7 +109,18 @@ def compare_distances(solution: Path, output: Path) -> tuple[bool, str]:
     return False, " | ".join(msg_parts) if msg_parts else "distance sets differ"
 
 
-def ensure_paths():
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Run benchmarks across all datasets.")
+    parser.add_argument(
+        "--no-check",
+        action="store_true",
+        help="Run even when solutions are missing and skip distance validation. "
+        "Statuses will be reported as NA unless a solver fails.",
+    )
+    return parser.parse_args()
+
+
+def ensure_paths(allow_missing_solutions: bool):
     if not shutil.which("perf"):
         sys.exit("perf not found in PATH. Please install perf to collect timing.")
     if not EXECUTABLE.exists():
@@ -116,11 +128,15 @@ def ensure_paths():
     if not DATASETS_DIR.is_dir():
         sys.exit(f"Datasets directory not found: {DATASETS_DIR}")
     if not SOLUTIONS_DIR.is_dir():
-        sys.exit(f"Solutions directory not found: {SOLUTIONS_DIR}")
+        if allow_missing_solutions:
+            print(f"Warning: solutions directory not found, continuing due to --no-check")
+        else:
+            sys.exit(f"Solutions directory not found: {SOLUTIONS_DIR}")
 
 
 def main():
-    ensure_paths()
+    args = parse_args()
+    ensure_paths(allow_missing_solutions=args.no_check)
     results = []
     solvers = ["CPU", "GPU", "HYBRID"]
     dataset_files = sorted(DATASETS_DIR.glob("*.txt"))
@@ -133,7 +149,10 @@ def main():
     for graph_file in dataset_files:
         dataset_name = graph_file.name
         solution_file = SOLUTIONS_DIR / dataset_name
-        if not solution_file.is_file():
+        has_solution = solution_file.is_file()
+        checks_enabled = has_solution and not args.no_check
+
+        if not has_solution and not args.no_check:
             print(f"[SKIP] {dataset_name}: missing solution file {solution_file}")
             results.append(
                 {
@@ -152,18 +171,22 @@ def main():
             )
             continue
 
-        print(f"[RUN ] {dataset_name}")
+        if not checks_enabled:
+            print(f"[RUN ] {dataset_name} (no solution check)")
+        else:
+            print(f"[RUN ] {dataset_name}")
+
         row = {
             "test_name": dataset_name,
             "cpu_time_ns": float("nan"),
             "cpu_time_spread": float("nan"),
-            "cpu_status": "FAIL",
+            "cpu_status": "FAIL" if checks_enabled else "NA",
             "gpu_time_ns": float("nan"),
             "gpu_time_spread": float("nan"),
-            "gpu_status": "FAIL",
+            "gpu_status": "FAIL" if checks_enabled else "NA",
             "hybrid_time_ns": float("nan"),
             "hybrid_time_spread": float("nan"),
-            "hybrid_status": "FAIL",
+            "hybrid_status": "FAIL" if checks_enabled else "NA",
         }
 
         for solver in solvers:
@@ -211,20 +234,29 @@ def main():
                 row[status_key] = "FAIL"
                 continue
 
-            ok, detail = compare_distances(solution_file, output_file)
-            row[status_key] = "PASS" if ok else "FAIL"
-            if row[status_key] == "FAIL":
-                print(f"[FAIL] {dataset_name} ({solver}) {detail}")
+            if checks_enabled:
+                ok, detail = compare_distances(solution_file, output_file)
+                row[status_key] = "PASS" if ok else "FAIL"
+                if row[status_key] == "FAIL":
+                    print(f"[FAIL] {dataset_name} ({solver}) {detail}")
+                else:
+                    print(f"[PASS] {dataset_name} ({solver})")
             else:
-                print(f"[PASS] {dataset_name} ({solver})")
+                row[status_key] = "NA"
+                print(f"[DONE] {dataset_name} ({solver}) output not checked")
 
         all_statuses = [row["cpu_status"], row["gpu_status"], row["hybrid_status"]]
-        if all(s == "PASS" for s in all_statuses):
-            row["status"] = "PASS"
-        elif all(s == "SKIP" for s in all_statuses):
-            row["status"] = "SKIP"
+        if checks_enabled:
+            if all(s == "PASS" for s in all_statuses):
+                row["status"] = "PASS"
+            elif all(s == "SKIP" for s in all_statuses):
+                row["status"] = "SKIP"
+            else:
+                row["status"] = (
+                    "FAIL" if any(s == "FAIL" for s in all_statuses) else "PASS"
+                )
         else:
-            row["status"] = "FAIL" if any(s == "FAIL" for s in all_statuses) else "PASS"
+            row["status"] = "FAIL" if any(s == "FAIL" for s in all_statuses) else "NA"
 
         results.append(row)
 

@@ -37,9 +37,11 @@ def main():
         sys.exit("No data to plot.")
 
     tests = df["test_name"].tolist()
-    cpu_times = df["cpu_time_ns"].tolist()
-    gpu_times = df["gpu_time_ns"].tolist()
-    hybrid_times = df["hybrid_time_ns"].tolist()
+    # Convert nanoseconds to milliseconds for a more readable y-axis.
+    ns_to_ms = 1e-6
+    cpu_times = (df["cpu_time_ns"] * ns_to_ms).tolist()
+    gpu_times = (df["gpu_time_ns"] * ns_to_ms).tolist()
+    hybrid_times = (df["hybrid_time_ns"] * ns_to_ms).tolist()
 
     x = range(len(tests))
     width = 0.25
@@ -49,7 +51,7 @@ def main():
     ax.bar(x, gpu_times, width, label="GPU")
     ax.bar([i + width for i in x], hybrid_times, width, label="HYBRID")
 
-    ax.set_ylabel("Time (ns)")
+    ax.set_ylabel("Time (ms)")
     ax.set_title("Solver performance per dataset")
     ax.set_xticks(list(x))
     ax.set_xticklabels(tests, rotation=45, ha="right")
