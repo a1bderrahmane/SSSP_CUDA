@@ -10,8 +10,7 @@ from pathlib import Path
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parent.parent
-DATASETS_DIR = REPO_ROOT / "datasets"
-SOLUTIONS_DIR = DATASETS_DIR / "solutions"
+DATASETS_DIR_DEFAULT = REPO_ROOT / "datasets"
 EXECUTABLE = REPO_ROOT / "exec" / "sssp_solver"
 RESULTS_CSV = REPO_ROOT / "test_results.csv"
 SOURCE_NODE = 0
@@ -112,6 +111,12 @@ def compare_distances(solution: Path, output: Path) -> tuple[bool, str]:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Run benchmarks across all datasets.")
     parser.add_argument(
+        "--dataset",
+        type=Path,
+        default=DATASETS_DIR_DEFAULT,
+        help="Path to dataset folder containing graph .txt files (default: ./datasets)",
+    )
+    parser.add_argument(
         "--no-check",
         action="store_true",
         help="Run even when solutions are missing and skip distance validation. "
@@ -120,35 +125,45 @@ def parse_args() -> argparse.Namespace:
     return parser.parse_args()
 
 
-def ensure_paths(allow_missing_solutions: bool):
+def ensure_paths(dataset_dir: Path, solutions_dir: Path, allow_missing_solutions: bool):
     if not shutil.which("perf"):
         sys.exit("perf not found in PATH. Please install perf to collect timing.")
     if not EXECUTABLE.exists():
         sys.exit(f"Executable not found: {EXECUTABLE} (build with 'make').")
-    if not DATASETS_DIR.is_dir():
-        sys.exit(f"Datasets directory not found: {DATASETS_DIR}")
-    if not SOLUTIONS_DIR.is_dir():
+    if not dataset_dir.is_dir():
+        sys.exit(f"Datasets directory not found: {dataset_dir}")
+    if not solutions_dir.is_dir():
         if allow_missing_solutions:
-            print(f"Warning: solutions directory not found, continuing due to --no-check")
+            print(
+                f"Warning: solutions directory not found at {solutions_dir}, "
+                "continuing due to --no-check"
+            )
         else:
-            sys.exit(f"Solutions directory not found: {SOLUTIONS_DIR}")
+            sys.exit(f"Solutions directory not found: {solutions_dir}")
 
 
 def main():
     args = parse_args()
-    ensure_paths(allow_missing_solutions=args.no_check)
+    dataset_dir = args.dataset.resolve()
+    solutions_dir = dataset_dir / "solutions"
+
+    ensure_paths(
+        dataset_dir=dataset_dir,
+        solutions_dir=solutions_dir,
+        allow_missing_solutions=args.no_check,
+    )
     results = []
     solvers = ["CPU", "GPU", "HYBRID"]
-    dataset_files = sorted(DATASETS_DIR.glob("*.txt"))
+    dataset_files = sorted(dataset_dir.glob("*.txt"))
     if not dataset_files:
-        sys.exit(f"No datasets (*.txt) found in {DATASETS_DIR}")
+        sys.exit(f"No datasets (*.txt) found in {dataset_dir}")
 
     logs_dir = REPO_ROOT / "tmp_test_logs"
     logs_dir.mkdir(exist_ok=True)
 
     for graph_file in dataset_files:
         dataset_name = graph_file.name
-        solution_file = SOLUTIONS_DIR / dataset_name
+        solution_file = solutions_dir / dataset_name
         has_solution = solution_file.is_file()
         checks_enabled = has_solution and not args.no_check
 
