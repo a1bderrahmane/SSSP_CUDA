@@ -84,6 +84,10 @@ void HybridSolver::printDistances() {
     }
 }
 
+std::vector<uint> HybridSolver::getDistances() {
+    return std::vector<uint>(distances, distances + csr_graph->getNumberofVertices());
+}
+
 uint HybridSolver::countVerticesInQueue() {
     uint nbVertices = 0;
     for (int vertex = 0; vertex < csr_graph->getNumberofVertices(); vertex++) {

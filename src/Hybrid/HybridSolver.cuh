@@ -7,6 +7,7 @@
 
 #include <mutex>
 #include <thread>
+#include <vector>
 
 static constexpr uint8_t HYBRID_TPB = 32;
 
@@ -17,6 +18,7 @@ class HybridSolver : public Isolver {
 public:
     std::vector<uint> solve(uint source_node) override;
     void printDistances();
+    std::vector<uint> getDistances();
     HybridSolver(const std::string &filename);
     ~HybridSolver() override;
 

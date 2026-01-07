@@ -16,7 +16,7 @@
 class CPUSolver : Isolver
 {
 public:
-    void solve(uint source_node);
+    std::vector<uint> solve(uint source_node);
     void printResults(std::ostream &out = std::cout);
     CPUSolver(const std::string &filename);
     ~CPUSolver();
