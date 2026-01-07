@@ -176,7 +176,7 @@ def main():
                 str(EXECUTABLE),
                 "-i",
                 str(graph_file),
-                "-v",
+                "-S",
                 solver,
                 "-n",
                 str(SOURCE_NODE),
