@@ -1,4 +1,5 @@
 #include "CSR.hpp"
+#include <sstream>
 
 namespace {
 std::mt19937 csr_rng;
@@ -50,8 +51,22 @@ void CSR::makeAdjacencies(const std::string &filename)
     }
     uint u, v;
     uint max_index = 0;
-    while (file >> u >> v)
+    std::string line;
+    while (std::getline(file, line))
     {
+        // Skip empty lines and comments starting with '#'
+        const auto first = line.find_first_not_of(" \t");
+        if (first == std::string::npos || line[first] == '#')
+        {
+            continue;
+        }
+
+        std::istringstream iss(line);
+        if (!(iss >> u >> v))
+        {
+            continue;
+        }
+
         num_edges++;
         adjacencies[u].push_back(v);
         // Track the largest vertex index found
