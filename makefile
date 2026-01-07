@@ -6,11 +6,19 @@ CXX         := g++
 
 ARCH        := -arch=sm_75
 
+#magic includes, nvidia help me
+CUDA_HOME ?= $(shell dirname $$(dirname $$(readlink -f $$(command -v $(NVCC)))))
+CUDA_INC_BASE ?= $(shell \
+  if [ -d "$(CUDA_HOME)/include" ]; then echo "$(CUDA_HOME)/include"; \
+  elif [ -d "$(CUDA_HOME)/targets/x86_64-linux/include" ]; then echo "$(CUDA_HOME)/targets/x86_64-linux/include"; \
+  else echo ""; fi)
+
+
 COMMON_FLAGS := -O3 
 NVCC_FLAGS   := $(ARCH) $(COMMON_FLAGS) --compiler-options "-Wall -Wextra"
 LDFLAGS      := $(ARCH)
 
-INCLUDES    := -I./src -I./src/CPU -I./src/GPU -I./src/Hybrid -I/usr/local/cuda/include
+INCLUDES    := -I./src -I./src/CPU -I./src/GPU -I./src/Hybrid  -I$(CUDA_INC_BASE) -I$(CUDA_INC_BASE)/cccl
 
 SRC_DIR     := src
 OBJ_DIR     := obj
@@ -39,7 +47,7 @@ $(TARGET): $(OBJS) | $(BIN_DIR)
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	@mkdir -p $(@D)
 	@echo "Compiling C++: $<"
-	$(CXX) $(INCLUDES) $(COMMON_FLAGS) -std=c++14 -c $< -o $@
+	$(CXX) $(INCLUDES) $(COMMON_FLAGS) -std=c++17 -c $< -o $@
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cu
 	@mkdir -p $(@D)
