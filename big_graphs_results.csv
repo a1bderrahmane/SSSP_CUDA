@@ -1,0 +1,6 @@
+test_name,cpu_time_ns,cpu_time_spread,cpu_status,gpu_time_ns,gpu_time_spread,gpu_status,hybrid_time_ns,hybrid_time_spread,hybrid_status,status
+amazon0312.txt,1494759232.0,0.79,NA,1078994825.0,1.07,NA,1124002355.0,0.79,NA,NA
+p2p-Gnutella31.txt,79537877.0,1.32,NA,371871958.0,0.72,NA,396118008.0,0.41,NA,NA
+roadNet-CA.txt,14064904841.0,2.25,NA,2425316896.0,1.0,NA,4851869821.0,0.55,NA,NA
+roadNet-PA.txt,8863906425.0,1.37,NA,1566825701.0,1.5,NA,3208791888.0,0.41,NA,NA
+web-BerkStan.txt,1689758887.0,1.29,NA,2030197643.0,0.43,NA,2010753684.0,0.98,NA,NA

@@ -1,0 +1,4 @@
+test_name,cpu_time_ns,cpu_time_spread,cpu_status,gpu_time_ns,gpu_time_spread,gpu_status,hybrid_time_ns,hybrid_time_spread,hybrid_status,status
+gplus_combined.txt,6128322565.0,0.8,NA,6661035677.0,0.72,NA,6771443736.0,0.59,NA,NA
+soc-LiveJournal1.txt,23221225472.0,1.65,NA,15872170365.0,0.42,NA,16418534650.0,0.6,NA,NA
+soc-Slashdot0811.txt,281219109.0,1.25,NA,533307366.0,2.34,NA,546174370.0,0.54,NA,NA
