@@ -11,7 +11,7 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parent.parent
 DATASETS_DIR = REPO_ROOT / "datasets"
 SOLUTIONS_DIR = DATASETS_DIR / "solutions"
-EXECUTABLE = REPO_ROOT / "exec" / "cpu_solver"
+EXECUTABLE = REPO_ROOT / "exec" / "sssp_solver"
 RESULTS_CSV = REPO_ROOT / "test_results.csv"
 SOURCE_NODE = 0
 SEED_VALUE = 0
@@ -112,7 +112,7 @@ def ensure_paths():
     if not shutil.which("perf"):
         sys.exit("perf not found in PATH. Please install perf to collect timing.")
     if not EXECUTABLE.exists():
-        sys.exit(f"Executable not found: {EXECUTABLE} (build with 'make cpu').")
+        sys.exit(f"Executable not found: {EXECUTABLE} (build with 'make').")
     if not DATASETS_DIR.is_dir():
         sys.exit(f"Datasets directory not found: {DATASETS_DIR}")
     if not SOLUTIONS_DIR.is_dir():
@@ -122,6 +122,7 @@ def ensure_paths():
 def main():
     ensure_paths()
     results = []
+    solvers = ["CPU", "GPU", "HYBRID"]
     dataset_files = sorted(DATASETS_DIR.glob("*.txt"))
     if not dataset_files:
         sys.exit(f"No datasets (*.txt) found in {DATASETS_DIR}")
@@ -139,73 +140,109 @@ def main():
                     "test_name": dataset_name,
                     "cpu_time_ns": float("nan"),
                     "cpu_time_spread": float("nan"),
+                    "cpu_status": "SKIP",
+                    "gpu_time_ns": float("nan"),
+                    "gpu_time_spread": float("nan"),
+                    "gpu_status": "SKIP",
+                    "hybrid_time_ns": float("nan"),
+                    "hybrid_time_spread": float("nan"),
+                    "hybrid_status": "SKIP",
                     "status": "SKIP",
                 }
             )
             continue
 
         print(f"[RUN ] {dataset_name}")
-        output_file = logs_dir / f"{dataset_name}.out"
-        log_file = logs_dir / f"{dataset_name}.log"
-        perf_output = logs_dir / f"{dataset_name}.perf"
+        row = {
+            "test_name": dataset_name,
+            "cpu_time_ns": float("nan"),
+            "cpu_time_spread": float("nan"),
+            "cpu_status": "FAIL",
+            "gpu_time_ns": float("nan"),
+            "gpu_time_spread": float("nan"),
+            "gpu_status": "FAIL",
+            "hybrid_time_ns": float("nan"),
+            "hybrid_time_spread": float("nan"),
+            "hybrid_status": "FAIL",
+        }
 
-        cmd = PERF_CMD_BASE + [
-            "--",
-            str(EXECUTABLE),
-            "-i",
-            str(graph_file),
-            "-n",
-            str(SOURCE_NODE),
-            "--seed",
-            str(SEED_VALUE),
-            "-o",
-            str(output_file),
-            "-l",
-            str(log_file),
-        ]
+        for solver in solvers:
+            output_file = logs_dir / f"{dataset_name}.{solver.lower()}.out"
+            log_file = logs_dir / f"{dataset_name}.{solver.lower()}.log"
+            perf_output = logs_dir / f"{dataset_name}.{solver.lower()}.perf"
 
-        proc = subprocess.run(
-            cmd,
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.PIPE,
-            text=True,
-        )
-        perf_output.write_text(proc.stderr or "", encoding="utf-8")
-        metrics = parse_perf(proc.stderr or "")
-        duration = metrics.get("duration_time", {})
-        cpu_time_ns = duration.get("value", float("nan"))
-        cpu_time_spread = duration.get("spread", float("nan"))
+            cmd = PERF_CMD_BASE + [
+                "--",
+                str(EXECUTABLE),
+                "-i",
+                str(graph_file),
+                "-v",
+                solver,
+                "-n",
+                str(SOURCE_NODE),
+                "--seed",
+                str(SEED_VALUE),
+                "-o",
+                str(output_file),
+                "-l",
+                str(log_file),
+            ]
 
-        if proc.returncode != 0:
-            print(f"       Solver failed (see {log_file})")
-            results.append(
-                {
-                    "test_name": dataset_name,
-                    "cpu_time_ns": cpu_time_ns,
-                    "cpu_time_spread": cpu_time_spread,
-                    "status": "FAIL",
-                }
+            proc = subprocess.run(
+                cmd,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.PIPE,
+                text=True,
             )
-            continue
+            perf_output.write_text(proc.stderr or "", encoding="utf-8")
+            metrics = parse_perf(proc.stderr or "")
+            duration = metrics.get("duration_time", {})
+            time_ns = duration.get("value", float("nan"))
+            spread = duration.get("spread", float("nan"))
 
-        ok, detail = compare_distances(solution_file, output_file)
-        status = "PASS" if ok else "FAIL"
-        if status == "FAIL":
-            print(f"[FAIL] {dataset_name} {detail}")
+            status_key = f"{solver.lower()}_status"
+            time_key = f"{solver.lower()}_time_ns"
+            spread_key = f"{solver.lower()}_time_spread"
+            row[time_key] = time_ns
+            row[spread_key] = spread
+
+            if proc.returncode != 0:
+                print(f"       {solver} solver failed (see {log_file})")
+                row[status_key] = "FAIL"
+                continue
+
+            ok, detail = compare_distances(solution_file, output_file)
+            row[status_key] = "PASS" if ok else "FAIL"
+            if row[status_key] == "FAIL":
+                print(f"[FAIL] {dataset_name} ({solver}) {detail}")
+            else:
+                print(f"[PASS] {dataset_name} ({solver})")
+
+        all_statuses = [row["cpu_status"], row["gpu_status"], row["hybrid_status"]]
+        if all(s == "PASS" for s in all_statuses):
+            row["status"] = "PASS"
+        elif all(s == "SKIP" for s in all_statuses):
+            row["status"] = "SKIP"
         else:
-            print(f"[PASS] {dataset_name}")
+            row["status"] = "FAIL" if any(s == "FAIL" for s in all_statuses) else "PASS"
 
-        results.append(
-            {
-                "test_name": dataset_name,
-                "cpu_time_ns": cpu_time_ns,
-                "cpu_time_spread": cpu_time_spread,
-                "status": status,
-            }
-        )
+        results.append(row)
 
     df = pd.DataFrame(
-        results, columns=["test_name", "cpu_time_ns", "cpu_time_spread", "status"]
+        results,
+        columns=[
+            "test_name",
+            "cpu_time_ns",
+            "cpu_time_spread",
+            "cpu_status",
+            "gpu_time_ns",
+            "gpu_time_spread",
+            "gpu_status",
+            "hybrid_time_ns",
+            "hybrid_time_spread",
+            "hybrid_status",
+            "status",
+        ],
     )
     df.to_csv(RESULTS_CSV, index=False)
     print(f"Results written to {RESULTS_CSV}")
